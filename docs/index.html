@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080d18">
+  <meta name="description" content="查詢 iPhone、iPad 與 Mac 的 IPSW 韌體版本，取得 Apple 下載連結。">
+  <title>IPSW Finder · 韌體查詢</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="icon-phone" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M10 5h4M11 19h2"/></symbol>
+    <symbol id="icon-tablet" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="3"/><path d="M11 19h2"/></symbol>
+    <symbol id="icon-mac" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+    <symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></symbol>
+    <symbol id="icon-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M15 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+    <symbol id="icon-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm0 0v6h6M8 13h8M8 17h5"/></symbol>
+  </svg>
+  <div class="ambient ambient-cyan" aria-hidden="true"></div>
+  <div class="ambient ambient-blue" aria-hidden="true"></div>
+  <div class="shell">
+    <header class="header">
+      <a class="brand" href="./" aria-label="IPSW Finder 首頁">
+        <span class="brand-icon"><svg class="icon"><use href="#icon-download"/></svg></span>
+        <span>IPSW <strong>Finder</strong><span class="brand-subtitle">APPLE FIRMWARE</span></span>
+      </a>
+      <a class="source-link" href="https://github.com/hsiao840412/IPSW-Finder" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">韌體查詢工具</p>
+        <h1 id="page-title">找到你需要的<span>韌體版本。</span></h1>
+        <p class="intro-description">選擇裝置、輸入版本，取得 IPSW 下載連結。</p>
+      </section>
+
+      <section class="versions-section" aria-labelledby="versions-title">
+        <div class="section-caption"><h2 id="versions-title">最新收錄版本</h2><span>資料來源：IPSW.me</span></div>
+        <div class="version-grid">
+          <button class="version-card" data-latest="iPhone" disabled aria-label="載入最新 iOS 版本">
+            <span class="version-top"><svg class="icon"><use href="#icon-phone"/></svg><span>iOS</span></span>
+            <span class="version-number" id="latest-iPhone">—</span>
+            <span class="version-note" id="latest-note-iPhone">載入中…</span>
+          </button>
+          <button class="version-card mint" data-latest="iPad" disabled aria-label="載入最新 iPadOS 版本">
+            <span class="version-top"><svg class="icon"><use href="#icon-tablet"/></svg><span>iPadOS</span></span>
+            <span class="version-number" id="latest-iPad">—</span>
+            <span class="version-note" id="latest-note-iPad">載入中…</span>
+          </button>
+          <button class="version-card violet" data-latest="Mac" disabled aria-label="載入最新 macOS 版本">
+            <span class="version-top"><svg class="icon"><use href="#icon-mac"/></svg><span>macOS</span></span>
+            <span class="version-number" id="latest-Mac">—</span>
+            <span class="version-note" id="latest-note-Mac">載入中…</span>
+          </button>
+        </div>
+        <p class="latest-error" id="latest-error" hidden>最新版本暫時無法載入，仍可手動輸入版本查詢。<button id="retry-latest" type="button">重新載入</button></p>
+      </section>
+
+      <section class="search-panel" aria-labelledby="search-title">
+        <div class="panel-heading"><span class="step-label">01</span><h2 id="search-title">選擇裝置與版本</h2></div>
+        <div class="device-picker" role="group" aria-label="裝置類型">
+          <button type="button" class="device-button active" data-device="iPhone" aria-pressed="true"><svg class="icon"><use href="#icon-phone"/></svg>iPhone</button>
+          <button type="button" class="device-button" data-device="iPad" aria-pressed="false"><svg class="icon"><use href="#icon-tablet"/></svg>iPad</button>
+          <button type="button" class="device-button" data-device="Mac" aria-pressed="false"><svg class="icon"><use href="#icon-mac"/></svg>Mac</button>
+        </div>
+        <form id="search-form" novalidate>
+          <label for="version">系統版本</label>
+          <div class="search-row">
+            <div class="input-wrap"><svg class="icon"><use href="#icon-search"/></svg><input id="version" name="version" type="text" placeholder="例如 26.0 或 18.2.1" autocomplete="off" spellcheck="false" required aria-describedby="version-hint"></div>
+            <button class="primary-button" id="search-button" type="submit"><svg class="icon"><use href="#icon-search"/></svg><span id="search-button-label">查詢韌體</span></button>
+          </div>
+          <p class="hint" id="version-hint">輸入完整版本號，或點選上方最新版本。</p>
+        </form>
+      </section>
+
+      <section class="results-section" aria-labelledby="results-title" aria-busy="false" id="results-section">
+        <div class="results-heading"><div class="panel-heading"><span class="step-label">02</span><h2 id="results-title">下載連結</h2><span class="result-count" id="result-count" hidden></span></div><button class="secondary-button" id="copy-all" type="button" disabled><svg class="icon"><use href="#icon-copy"/></svg>複製全部</button></div>
+        <p class="results-description" id="results-description" hidden></p>
+        <p class="error-message" id="search-error" role="alert" hidden></p>
+        <div class="empty-state" id="empty-state"><span class="empty-icon"><svg class="icon"><use href="#icon-download"/></svg></span><h3 id="empty-title">下載連結會顯示在這裡</h3><p id="empty-description">選好裝置與版本，即可開始查詢。</p></div>
+        <div id="results" class="result-list"></div>
+        <div class="manual-copy" id="manual-copy" hidden><label for="manual-links">無法存取剪貼簿，請選取以下連結手動複製。</label><textarea id="manual-links" readonly rows="5"></textarea><button class="secondary-button" id="close-manual" type="button">關閉</button></div>
+        <p id="search-status" class="sr-only" role="status" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <footer><p>韌體資料由 <a href="https://ipsw.me" target="_blank" rel="noopener noreferrer">IPSW.me</a> 提供，下載連結直接連至 Apple。</p><p>簽署狀態依查詢時的 API 資料顯示。</p></footer>
+  </div>
+  <div class="toast" id="toast" role="status" hidden></div>
+  <noscript><p class="noscript">請啟用 JavaScript，以查詢韌體與下載連結。</p></noscript>
+</body>
+</html>
