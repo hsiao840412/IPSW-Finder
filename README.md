@@ -17,6 +17,7 @@
 
 - 顯示 IPSW.me 最新收錄的 iOS、iPadOS、macOS 版本，點選可填入查詢欄位。
 - 依裝置類型與完整版本號查詢，合併重複下載連結。
+- 下載結果、共用檔案的機型預覽與展開清單，依機型首次發售日期由新到舊排序；全部複製也沿用相同順序。
 - 顯示支援機型、檔案大小、Build、發佈日期與簽署狀態。
 - 單筆／全部複製連結，直接開啟 Apple 下載來源。
 - 支援手機與電腦，包含載入、無結果、網路錯誤、逾時與剪貼簿手動複製狀態。
@@ -53,6 +54,8 @@ python3 -m http.server 8080 --directory docs --bind 127.0.0.1
 API 已實測回傳 `Access-Control-Allow-Origin: *`，瀏覽器可直接呼叫。網站只顯示 API 回傳的 Apple 網域下載連結，不儲存或轉送韌體。最新版本表示 IPSW.me 的收錄資料；Mac 查詢範圍是 API 收錄的 Mac IPSW，不提供通用 macOS 安裝程式。簽署狀態依查詢當下資料顯示，共用檔案若狀態不一致則標示「依裝置而異／未確認」。
 
 GitHub Pages 的發佈方式參考 [GitHub 官方文件](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)。
+
+機型排序採用 [AppleDB 維護者的裝置資料](https://github.com/littlebyteorg/appledb)，以識別碼對應首次發售日期，資料快照見 `docs/device-releases.mjs`（2026-10-05）。日期資料隨網站一起提供，不增加使用時的外部 API 請求；同日發售以識別碼數字降冪固定順序，同機型的多個韌體 Build 以韌體發佈日期降冪排序。未收錄日期的新機型列於最後並標示「發售日期未確認」，更新快照後即可納入日期排序。AppleDB 採用 MIT 授權，完整授權聲明保留在 `docs/appledb-license.txt`。
 
 ## 驗證
 

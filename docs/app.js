@@ -1,4 +1,4 @@
-import { SYSTEMS, APIError, fetchJSON, isValidVersion, latestVersions, groupFirmwares, signingStatus, formatDate, formatSize } from "./firmware.mjs";
+import { SYSTEMS, APIError, fetchJSON, isValidVersion, latestVersions, groupFirmwares, signingStatus, formatDate, formatSize, deviceReleaseDate } from "./firmware.mjs";
 
 const $ = id => document.getElementById(id);
 const state = { type: "iPhone", latest: {}, devices: new Map(), groups: [], request: null, generation: 0, latestRequest: 0 };
@@ -114,14 +114,15 @@ function renderResults() {
     try { readableName = decodeURIComponent(fileName); } catch { readableName = fileName; }
     info.append(node("h3", "", readableName || "IPSW 韌體"));
     const identifiers = [...new Set(group.firmwares.map(item => item.identifier))];
-    const names = identifiers.map(id => state.devices.get(id) ?? id);
+    const deviceLabel = id => `${state.devices.get(id) ?? id}${deviceReleaseDate(id) ? "" : "（發售日期未確認）"}`;
+    const names = identifiers.map(deviceLabel);
     const preview = names.slice(0, 3).join(" · ") + (names.length > 3 ? ` 等 ${names.length} 款裝置` : "");
     info.append(node("p", "firmware-devices", preview));
     if (identifiers.length > 3) {
       const details = node("details", "device-details");
       details.append(node("summary", "", `查看全部 ${identifiers.length} 款裝置`));
       const list = node("ul");
-      identifiers.forEach(id => list.append(node("li", "", `${state.devices.get(id) ?? id} · ${id}`)));
+      identifiers.forEach(id => list.append(node("li", "", `${deviceLabel(id)} · ${id}`)));
       details.append(list);
       info.append(details);
     }
@@ -189,7 +190,7 @@ async function search(event) {
     $("empty-state").hidden = true;
     $("result-count").textContent = `${state.groups.length} 個檔案`;
     $("result-count").hidden = false;
-    $("results-description").textContent = `${type} · ${SYSTEMS[type]} ${version} · 相同下載連結已合併`;
+    $("results-description").textContent = `${type} · ${SYSTEMS[type]} ${version} · 機型由新到舊 · 相同下載連結已合併`;
     $("results-description").hidden = false;
     $("copy-all").disabled = false;
     renderResults();

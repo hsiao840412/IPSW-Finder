@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { APIError, isValidVersion, compareVersions, latestVersions, matchesDevice, appleDownloadURL, groupFirmwares, signingStatus, formatSize, fetchJSON } from "../docs/firmware.mjs";
+import { APIError, isValidVersion, compareVersions, latestVersions, matchesDevice, appleDownloadURL, groupFirmwares, signingStatus, formatSize, fetchJSON, compareDevicesNewestFirst } from "../docs/firmware.mjs";
 
 test("complete version validation and numeric comparison", () => {
   for (const version of ["26.0", "18.2.1", "10.15.7"]) assert.equal(isValidVersion(version), true);
@@ -29,10 +29,29 @@ test("timeline chooses highest released version, excluding OTA and prereleases",
 test("device classification keeps AppleTV and unrelated devices out", () => {
   assert.equal(matchesDevice("iPhone18,1", "iPhone"), true);
   assert.equal(matchesDevice("iPad16,4", "iPad"), true);
-  for (const id of ["Mac14,2", "MacBookPro18,1", "iMac21,1"]) assert.equal(matchesDevice(id, "Mac"), true);
+  for (const id of ["Mac14,2", "MacBookPro18,1", "iMac21,1", "Macmini9,1"]) assert.equal(matchesDevice(id, "Mac"), true);
   assert.equal(matchesDevice("AppleTV14,1", "Mac"), false);
   assert.equal(matchesDevice("iPhone18,1", "iPad"), false);
   assert.equal(matchesDevice(undefined, "Mac"), false);
+});
+
+test("device order follows release dates, including nonchronological identifiers", () => {
+  assert.deepEqual(["iPad14,1", "iPad13,16"].sort(compareDevicesNewestFirst), ["iPad13,16", "iPad14,1"]);
+  assert.deepEqual(["MacBookPro18,1", "Mac17,2", "Macmini9,1"].sort(compareDevicesNewestFirst), ["Mac17,2", "MacBookPro18,1", "Macmini9,1"]);
+  assert.deepEqual(["iPhone14,3", "iPhone18,1", "iPhone12,1"].sort(compareDevicesNewestFirst), ["iPhone18,1", "iPhone14,3", "iPhone12,1"]);
+  assert.deepEqual(["iPhone99,1", "iPhone18,1"].sort(compareDevicesNewestFirst), ["iPhone18,1", "iPhone99,1"]);
+});
+
+test("download cards and shared device lists both sort newest first", () => {
+  const records = [
+    { identifier: "iPad14,1", url: "https://apple.com/a-old.ipsw" },
+    { identifier: "iPad13,16", url: "https://apple.com/z-new.ipsw" },
+    { identifier: "iPad13,1", url: "https://apple.com/z-new.ipsw" }
+  ];
+  const groups = groupFirmwares(records, "iPad");
+  assert.equal(groups[0].url, "https://apple.com/z-new.ipsw");
+  assert.deepEqual(groups[0].firmwares.map(firmware => firmware.identifier), ["iPad13,16", "iPad13,1"]);
+  assert.equal(records[0].identifier, "iPad14,1");
 });
 
 test("download URLs must belong to Apple and cannot contain credentials", () => {

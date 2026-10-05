@@ -38,8 +38,23 @@ export function matchesDevice(identifier, type) {
   if (typeof identifier !== "string") return false;
   if (type === "iPhone") return /^iPhone\d+,\d+$/i.test(identifier);
   if (type === "iPad") return /^iPad\d+,\d+$/i.test(identifier);
-  if (type === "Mac") return /^(?:Mac\d+,\d+|MacBook\w*\d+,\d+|iMac\w*\d+,\d+)$/i.test(identifier);
+  if (type === "Mac") return /^(?:Mac(?:Book\w*|mini|Pro)?\d+,\d+|iMac\w*\d+,\d+)$/i.test(identifier);
   return false;
+}
+
+// Identifiers are not a release chronology: iPad13,16 (Air 5) is newer than
+// iPad14,1 (mini 6), and Mac17,2 is newer than MacBookPro18,1.
+export function compareDevicesNewestFirst(a, b) {
+  const left = DEVICE_RELEASES[a];
+  const right = DEVICE_RELEASES[b];
+  if (left && right && left !== right) return right.localeCompare(left);
+  if (left && !right) return -1;
+  if (!left && right) return 1;
+  return b.localeCompare(a, "en", { numeric: true });
+}
+
+export function deviceReleaseDate(identifier) {
+  return DEVICE_RELEASES[identifier] ?? null;
 }
 
 export function appleDownloadURL(value) {
@@ -63,7 +78,13 @@ export function groupFirmwares(firmwares, type) {
     if (!groups.has(url)) groups.set(url, { url, firmwares: [] });
     groups.get(url).firmwares.push(firmware);
   }
-  return [...groups.values()].sort((a, b) => a.url.localeCompare(b.url));
+  const result = [...groups.values()];
+  for (const group of result) {
+    group.firmwares.sort((a, b) => compareDevicesNewestFirst(a.identifier, b.identifier));
+  }
+  return result.sort((a, b) => compareDevicesNewestFirst(a.firmwares[0].identifier, b.firmwares[0].identifier)
+    || (Date.parse(b.firmwares[0].releasedate) || 0) - (Date.parse(a.firmwares[0].releasedate) || 0)
+    || a.url.localeCompare(b.url));
 }
 
 export function signingStatus(firmwares) {
@@ -103,3 +124,4 @@ export async function fetchJSON(path, { signal, fetcher = fetch, timeout = 20000
     signal?.removeEventListener("abort", abort);
   }
 }
+import { DEVICE_RELEASES } from "./device-releases.mjs";
